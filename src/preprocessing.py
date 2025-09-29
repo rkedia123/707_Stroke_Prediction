@@ -5,7 +5,8 @@
 import pandas as pd
 import numpy as np
 from pathlib import Path
-from sklearn.experimental import enable_iterative_imputer   # experimental 
+# this is needed to enable experimental features of sklearn
+from sklearn.experimental import enable_iterative_imputer   # noqa
 from sklearn.impute import IterativeImputer, KNNImputer
 from sklearn.linear_model import BayesianRidge
 
