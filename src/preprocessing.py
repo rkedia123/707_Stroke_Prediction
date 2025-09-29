@@ -104,35 +104,79 @@ def impute_numeric_columns(df, strategy="mean", cols=None, print_info=False, knn
         if print_info:
             print(f"Imputed column '{col}' with value: {value}")
 
-    print(f"\n✅ Imputed missing values in {changed_count} columns out of {len(cols)} numeric columns.")
+    print(f"\n✅ Imputed missing values in {changed_count} columns out of {len(cols)} numeric columns using method: {strategy}.")
     return df, imputed_values
 
 
-def impute_categorical_columns(df, print_info=False):
+def impute_categorical_columns(df, stratify_cols=None, print_info=False, strategy="mode"):
     """
-    Imputes missing values in categorical/object columns using mode (most frequent value).
+    Imputes missing values in categorical/object columns using mode or hot-deck. 
 
     Parameters:
         df (pd.DataFrame): input dataframe
+        stratify_cols (list[str], optional): columns to use for conditional hot-deck. If none, use global cols
         print_info (bool): print info about imputations
+        strategy (str): "mode" or "hot_deck"
 
     Returns:
         pd.DataFrame: dataframe with imputed categorical columns
     """
+    df = df.copy()
     cat_cols = df.select_dtypes(include=["object"]).columns
     changed_count = 0
 
-    for col in cat_cols:
-        if df[col].isna().any():
-            changed_count += 1
-            mode_val = df[col].mode()[0]
-            df[col] = df[col].fillna(mode_val)
-            if print_info:
-                print(f"Imputed column '{col}' with mode: {mode_val}")
+    if strategy == "hot_deck":
+        for col in cat_cols:
+            if df[col].isna().any():
+                changed_count += 1
+                global_donors = df[col].dropna().values  # fallback pool
+                stratified_count = 0
+                fallback_count = 0
+
+                if stratify_cols:
+                    grouped = df.groupby(stratify_cols)
+                    for keys, subdf in grouped:
+                        observed = subdf[col].dropna().values
+                        if len(observed) == 0:
+                            # fallback to global pool
+                            df.loc[subdf.index, col] = subdf[col].apply(
+                                lambda x: np.random.choice(global_donors) if pd.isna(x) else x
+                            )
+                            fallback_count += subdf[col].isna().sum()
+                        else:
+                            df.loc[subdf.index, col] = subdf[col].apply(
+                                lambda x: np.random.choice(observed) if pd.isna(x) else x
+                            )
+                            stratified_count += subdf[col].isna().sum()
+                else:
+                    # purely random hot-deck
+                    df[col] = df[col].apply(
+                        lambda x: np.random.choice(global_donors) if pd.isna(x) else x
+                    )
+                    fallback_count += df[col].isna().sum()  # all missing are global
+
+                if print_info:
+                    print(f"Imputed column '{col}' using hot-deck")
+                    if stratify_cols:
+                        print(f"  → {stratified_count} values imputed using stratification")
+                        print(f"  → {fallback_count} values imputed using global fallback")
+                    else:
+                        print(f"  → {fallback_count} values imputed using global pool (no stratification)")
+
+    elif strategy == "mode":
+        for col in cat_cols:
+            if df[col].isna().any():
+                changed_count += 1
+                mode_val = df[col].mode()[0]
+                df[col] = df[col].fillna(mode_val)
+                if print_info:
+                    print(f"Imputed column '{col}' with mode: {mode_val}")
 
     print(f"\n✅ Imputed missing values in {changed_count} categorical columns "
-          f"out of {len(cat_cols)} object columns.")
+          f"out of {len(cat_cols)} object columns using method: {strategy}.")
     return df
+
+
 
 ##########################################################
 # Testing functions and creating updated .csv file
@@ -161,8 +205,10 @@ df_case_fixed, _ = uppercase_all_object_columns(df)
 # Step 2: Impute numeric columns (KNN imputation)
 df_imputed, _ = impute_numeric_columns(df_case_fixed, strategy="knn", print_info=True)
 
-# Step 3: Impute categorical/object columns (mode imputation)
-df_imputed_cat = impute_categorical_columns(df_imputed, print_info=False)
+# Step 3: Impute categorical/object columns (hot-deck imputation)
+# using stratifiers: `group`, `gender`, `ethnicity`, `race`
+strat_cols=['group', 'gender', 'ethnicity', 'race']
+df_imputed_cat = impute_categorical_columns(df_imputed, print_info=True, strategy= "hot_deck", stratify_cols=strat_cols)
 
 # Step 4: Save the processed DataFrame to CSV
 # Ensure the output directory exists
