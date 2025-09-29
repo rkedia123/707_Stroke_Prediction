@@ -14,6 +14,10 @@ Determining Key Biomarkers of Stroke in ICU Patients
   * **Median imputation** – replaces missing values with the column median 
   * **Mode imputation** – replaces missing values with the most frequent value 
   * **KNN imputation** – replaces missing values using K-Nearest Neighbors
+  * **Regression imputation**: replace missing values using a regression model
+    - Each missing column is predicted using `Bayesian Ridge Regression` with other numeric columns as predictors
+    - Why `Bayesian Ridge`: regularizes automatically via a prior, for a more stable imputation than using a linear regression. Provides a good balance of bias and variance.
+   
 
 - **Categorical Column Imputation**  
   Handles missing values in categorical/object columns using `impute_categorical_columns`

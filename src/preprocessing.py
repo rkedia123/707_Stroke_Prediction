@@ -1,11 +1,13 @@
 # File Purpose: Cleaning raw data (\data\raw\subjects.csv)
 # Author: Max Freitas
-# Last Updated: September 28, 2025
+# Last Updated: September 29, 2025
 
 import pandas as pd
 import numpy as np
 from pathlib import Path
-from sklearn.impute import KNNImputer
+from sklearn.experimental import enable_iterative_imputer   # experimental 
+from sklearn.impute import IterativeImputer, KNNImputer
+from sklearn.linear_model import BayesianRidge
 
 
 def uppercase_all_object_columns(df, print_unique=False):
@@ -39,23 +41,24 @@ def uppercase_all_object_columns(df, print_unique=False):
     return df, uppercase_cols
 
 
-def impute_numeric_columns(df, strategy="mean", cols=None, print_info=False, knn_neighbors=5):
+def impute_numeric_columns(df, strategy="mean", cols=None, print_info=False, knn_neighbors=5, max_iter=1):
     """
-    Imputes missing values in numeric columns using mean, median, mode, or KNN.
+    Imputes missing values in numeric columns using mean, median, mode, KNN, or regression.
 
     Parameters:
         df (pd.DataFrame): input dataframe
-        strategy (str): "mean", "median", "mode", or "knn"
+        strategy (str): "mean", "median", "mode", "knn", or "regression"
         cols (list or None): list of columns to impute. If None, all numeric cols are used.
         print_info (bool): if True, print info about imputations
         knn_neighbors (int): number of neighbors for KNN imputation
+        max_iter (int): how many times to run the regression model
 
     Returns:
         pd.DataFrame: dataframe with imputed numeric columns
         dict: mapping of column -> imputation value used (only for mean/median/mode)
     """
-    if strategy not in ["mean", "median", "mode", "knn"]:
-        raise ValueError("strategy must be 'mean', 'median', 'mode', or 'knn'")
+    if strategy not in ["mean", "median", "mode", "knn", "regression"]:
+        raise ValueError("strategy must be 'mean', 'median', 'mode', 'knn', or 'regression'")
 
     imputed_values = {}
     changed_count = 0
@@ -64,30 +67,28 @@ def impute_numeric_columns(df, strategy="mean", cols=None, print_info=False, knn
     if cols is None:
         cols = df.select_dtypes(include=[np.number]).columns.tolist()
 
+    numeric_cols = [c for c in cols if df[c].dtype in [np.float64, np.int64] and not df[c].isna().all()]
+    numeric_df = df[numeric_cols].copy()
+
     if strategy == "knn":
-        # Select numeric columns with at least one non-NaN value
-        numeric_cols = [c for c in cols if df[c].dtype in [np.float64, np.int64] and not df[c].isna().all()]
-        numeric_df = df[numeric_cols].copy()
-
-        # Apply KNN
         imputer = KNNImputer(n_neighbors=knn_neighbors)
-        imputed_array = imputer.fit_transform(numeric_df)
-
-        # Assign back to the DataFrame
-        df[numeric_cols] = pd.DataFrame(imputed_array, columns=numeric_cols, index=df.index)
-
+        df[numeric_cols] = pd.DataFrame(imputer.fit_transform(numeric_df), columns=numeric_cols, index=df.index)
         if print_info:
             print(f"\n✅ KNN imputation applied to {len(numeric_cols)} numeric columns "
                   f"(skipped {len(cols) - len(numeric_cols)} columns).")
         return df, {}
 
-    # Otherwise: mean, median, or mode
-    for col in cols:
-        if df[col].isna().all():
-            if print_info:
-                print(f"⚠️ Skipping column '{col}' (all values are NaN)")
-            continue
+    elif strategy == "regression":
+        # IterativeImputer uses regression iteratively to fill missing values using bayesian ridge
+        imputer = IterativeImputer(estimator=BayesianRidge(), max_iter=max_iter, random_state=0)
+        df[numeric_cols] = pd.DataFrame(imputer.fit_transform(numeric_df), columns=numeric_cols, index=df.index)
+        if print_info:
+            print(f"\n✅ Regression imputation applied to {len(numeric_cols)} numeric columns "
+                  f"(skipped {len(cols) - len(numeric_cols)} columns).")
+        return df, {}
 
+    # Otherwise: mean, median, or mode
+    for col in numeric_cols:
         if strategy == "mean":
             value = df[col].mean()
         elif strategy == "median":
@@ -104,7 +105,8 @@ def impute_numeric_columns(df, strategy="mean", cols=None, print_info=False, knn
         if print_info:
             print(f"Imputed column '{col}' with value: {value}")
 
-    print(f"\n✅ Imputed missing values in {changed_count} columns out of {len(cols)} numeric columns using method: {strategy}.")
+    if print_info:
+        print(f"\n✅ Imputed missing values in {changed_count} columns out of {len(numeric_cols)} numeric columns using method: {strategy}.")
     return df, imputed_values
 
 
@@ -202,13 +204,15 @@ df = load_data()
 # Step 1: Convert all object/string columns to uppercase
 df_case_fixed, _ = uppercase_all_object_columns(df)
 
-# Step 2: Impute numeric columns (KNN imputation)
-df_imputed, _ = impute_numeric_columns(df_case_fixed, strategy="knn", print_info=True)
+#####################
+#  WARNING: This can take a while to run, especially for higher max_iter
+# Step 2: Impute numeric columns (regression):
+df_imputed, _ = impute_numeric_columns(df_case_fixed, strategy="regression", print_info=True)
 
 # Step 3: Impute categorical/object columns (hot-deck imputation)
 # using stratifiers: `group`, `gender`, `ethnicity`, `race`
 strat_cols=['group', 'gender', 'ethnicity', 'race']
-df_imputed_cat = impute_categorical_columns(df_imputed, print_info=True, strategy= "hot_deck", stratify_cols=strat_cols)
+df_imputed_cat = impute_categorical_columns(df_imputed, print_info=False, strategy= "hot_deck", stratify_cols=strat_cols)
 
 # Step 4: Save the processed DataFrame to CSV
 # Ensure the output directory exists
