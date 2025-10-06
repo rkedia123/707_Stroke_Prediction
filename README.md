@@ -32,3 +32,6 @@ Determining Key Biomarkers of Stroke in ICU Patients
       * If no stratifiers are provided, use all observed values in the column (global)
     - Step 3: Replace each missing value with a randomly selected donor 
     - Potential list of stratifiers (`group`, `gender`, `ethnicity`, `race`). It's best to only use a few stratifiers otherwise, we will have to use global column set too much.
+
+- **Creating Data Dictionary**
+  * Create a data dictionary of all chosen columns of `subjects.csv`
