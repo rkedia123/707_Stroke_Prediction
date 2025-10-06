@@ -3,11 +3,14 @@ Determining Key Biomarkers of Stroke in ICU Patients
 ---
 ### 1. Data Processing Steps
 
+- **Load Data**
+  * Load in raw data and select cols of interest using `load_data`
+
 - **Object/String Capitalization**  
-  Standardizes all object/string columns by converting values to uppercase using  `uppercase_all_object_columns`
+  * Standardizes all object/string columns by converting values to uppercase using  `uppercase_all_object_columns`
 
 - **Numeric Column Imputation**  
-  Handles missing values in numeric columns using `impute_numeric_columns`
+  * Handles missing values in numeric columns using `impute_numeric_columns`
   
   Supported strategies:  
   * **Mean imputation** – replaces missing values with the column mean  

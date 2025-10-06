@@ -5,6 +5,7 @@
 import pandas as pd
 import numpy as np
 from pathlib import Path
+import re
 # this is needed to enable experimental features of sklearn
 from sklearn.experimental import enable_iterative_imputer   # noqa
 from sklearn.impute import IterativeImputer, KNNImputer
@@ -180,6 +181,64 @@ def impute_categorical_columns(df, stratify_cols=None, print_info=False, strateg
     return df
 
 
+def clean_column_name(col):
+    """
+    Robust normalization of column names:
+    - lowercase
+    - strip whitespace and non-breaking spaces
+    - replace spaces, hyphens, slashes with underscores
+    - replace % with 'pct'
+    - remove parentheses and other punctuation
+    - collapse multiple underscores
+    """
+    col = col.lower()
+    col = col.replace('\xa0', '_')  # non-breaking space
+    col = col.strip()
+    col = col.replace(' ', '_').replace('-', '_').replace('/', '_').replace('%', 'pct')
+    col = re.sub(r'[()°]', '', col)  # remove parentheses and degree symbol
+    col = re.sub(r'[^a-z0-9_]', '', col)  # remove any other non-alphanumeric
+    col = re.sub(r'__+', '_', col)  # collapse multiple underscores
+    return col
+
+
+def load_data(path, selected_cols=None):
+    """
+    Load raw subject data into a pandas DataFrame, optionally selecting columns
+    after normalizing column names for matching. Prints detailed mismatch info.
+    """
+    try:
+        df = pd.read_csv(path)
+        print(f"✅ Loaded data: {df.shape[0]} rows, {df.shape[1]} columns")
+
+        # Clean CSV column names
+        df.columns = [clean_column_name(c) for c in df.columns]
+
+        if selected_cols is not None:
+            sel_cols = [clean_column_name(c) for c in selected_cols]
+            existing_cols = df.columns.intersection(sel_cols)
+            missing_cols = set(sel_cols) - set(existing_cols)
+
+            df = df.loc[:, existing_cols]
+
+            print(f"📊 Selected {len(existing_cols)} matching columns.")
+            if missing_cols:
+                print(f"⚠️ {len(missing_cols)} columns missing:")
+                for col in sorted(missing_cols):
+                    print(f"   - {col}")
+                
+                # Optionally, show which requested columns actually exist
+                print(f"✅ {len(existing_cols)} columns found:")
+                for col in sorted(existing_cols):
+                    print(f"   - {col}")
+
+        return df
+
+    except FileNotFoundError:
+        print(f"❌ File not found at {path}")
+        return None
+
+
+
 
 ##########################################################
 # Testing functions and creating updated .csv file
@@ -188,19 +247,101 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DATA_PATH = PROJECT_ROOT / "data" / "raw" / "subjects.csv"
 OUTPUT_PATH = PROJECT_ROOT / "data" / "processed" / "subjects_processed.csv"
 
-# Function to load raw data
-def load_data(path=DATA_PATH):
-    """Load raw subject data into a pandas DataFrame."""
-    try:
-        df = pd.read_csv(path)
-        print(f"✅ Loaded data: {df.shape[0]} rows, {df.shape[1]} columns")
-        return df
-    except FileNotFoundError:
-        print(f"❌ File not found at {path}")
-        return None
+cols_to_select = [
+    "dm_non-dm_stroke",
+    "stroke_patient_medical_history",
+    "baseline_mean_hr_bp_baseline",
+    "dbp_baseline",
+    "mbp",
+    "sbp",
+    "rr_interval",
+    "hr",
+    "sbp_baseline",
+    "hr_baseline",
+    "baseline_mean_sbp_bp_baseline",
+    "baseline_mean_dbp_bp_baseline",
+    "baseline_mean_mbp_bp_baseline",
+    "hyper_mn_hr_supine_tilt",
+    "hypo_mn_hr_supine_tilt",
+    "hr_supine_tilt",
+    "sbp_supine_tilt",
+    "dbp_supine_tilt",
+    "mbp_supine_tilt",
+    "hr_stand_tilt",
+    "sbp_stand_tilt",
+    "dbp_stand_tilt",
+    "mbp_stand_tilt",
+    "hrv_sdnn",
+    "hrv_rmssd",
+    "hrv_pnn50",
+    "hrv_lf",
+    "hrv_hf",
+    "hrv_lf_hf",
+    "rr_resp_rate",
+    "o2",
+    "co2",
+    "o2_base_tilt",
+    "o2_base_tilt_pct",
+    "r2_o2_base_tilt_pct",
+    "p_o2_base_tilt_pct",
+    "co2_base_tilt",
+    "co2_base_tilt_pct",
+    "r2_co2_base_tilt_pct",
+    "p_co2_base_tilt_pct",
+    "rco2l_base_tilt",
+    "rco2l_base_tilt_pct",
+    "r2_rco2l_base_tilt_pct",
+    "p_rco2l_base_tilt_pct",
+    "o2_hyper_pct",
+    "co2_hyper_pct",
+    "o2_hypo_pct",
+    "co2_hypo_pct",
+    "sbp_supine_rebreathing",
+    "dbp_supine_rebreathing",
+    "mbp_supine_rebreathing",
+    "hypo_mn_hr_supine_rebreathing",
+    "hr_supine_rebreathing",
+    "sbp_stand_rebreathing",
+    "dbp_stand_rebreathing",
+    "mbp_stand_rebreathing",
+    "hr_stand_rebreathing",
+    "sbp_base_tilt",
+    "sbp_base_tilt_pct",
+    "r2_sbp_base_tilt_pct",
+    "p_sbp_base_tilt_pct",
+    "dbp_base_tilt",
+    "dbp_base_tilt_pct",
+    "r2_dbp_base_tilt_pct",
+    "p_dbp_base_tilt_pct",
+    "mbp_base_tilt",
+    "mbp_base_tilt_pct",
+    "r2_mbp_base_tilt_pct",
+    "p_mbp_base_tilt_pct",
+    "sbp_hyper_pct",
+    "mbp_hyper_pct",
+    "mbp_hypo_pct",
+    "diast_mcal_tilt",
+    "mean_mcal_tilt",
+    "gait_cadence",
+    "gait_velocity",
+    "gait_stride_time",
+    "gait_stance_time",
+    "htn_patient_medical_history",
+    # co-variates
+    "group",
+    "ethnicity",
+    "gender",
+    "race",
+    "age",
+    "bmi",
+    # id
+    "subject_number"
+]
+
+
 
 # Load data
-df = load_data()
+df = load_data(path=DATA_PATH, selected_cols= cols_to_select)
 
 # Step 1: Convert all object/string columns to uppercase
 df_case_fixed, _ = uppercase_all_object_columns(df)
@@ -208,7 +349,7 @@ df_case_fixed, _ = uppercase_all_object_columns(df)
 #####################
 #  WARNING: This can take a while to run, especially for higher max_iter
 # Step 2: Impute numeric columns (regression):
-df_imputed, _ = impute_numeric_columns(df_case_fixed, strategy="regression", print_info=True)
+df_imputed, _ = impute_numeric_columns(df_case_fixed, strategy="regression", print_info=True, max_iter=5)
 
 # Step 3: Impute categorical/object columns (hot-deck imputation)
 # using stratifiers: `group`, `gender`, `ethnicity`, `race`
