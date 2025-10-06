@@ -12,6 +12,81 @@ from sklearn.impute import IterativeImputer, KNNImputer
 from sklearn.linear_model import BayesianRidge
 
 
+def clean_column_name(col):
+    """
+    Robust normalization of column names:
+    - lowercase
+    - strip whitespace and non-breaking spaces
+    - replace spaces, hyphens, slashes with underscores
+    - replace % with 'pct'
+    - remove parentheses and other punctuation
+    - collapse multiple underscores
+    """
+    col = col.lower()
+    col = col.replace('\xa0', '_')  # non-breaking space
+    col = col.strip()
+    col = col.replace(' ', '_').replace('-', '_').replace('/', '_').replace('%', 'pct')
+    col = re.sub(r'[()°]', '', col)  # remove parentheses and degree symbol
+    col = re.sub(r'[^a-z0-9_]', '', col)  # remove any other non-alphanumeric
+    col = re.sub(r'__+', '_', col)  # collapse multiple underscores
+    return col
+
+def clean_column_list(col_list):
+    """
+    Apply clean_column_name to a list of column names.
+
+    Parameters:
+        col_list (list): list of string column names
+
+    Returns:
+        list: list of cleaned column names
+    """
+    return [clean_column_name(col) for col in col_list]
+
+def load_data(path, selected_cols=None):
+    """
+    Load raw subject data into a pandas DataFrame, optionally selecting columns
+    after normalizing column names for matching. Prints detailed mismatch info.
+
+    Parameters:
+        path (str): path to CSV file
+        selected_cols (list or None): list of columns to select after cleaning names
+
+    Returns:
+        pd.DataFrame or None: dataframe with loaded (and optionally selected) columns,
+                              or None if file not found
+    """
+    try:
+        df = pd.read_csv(path)
+        print(f"✅ Loaded data: {df.shape[0]} rows, {df.shape[1]} columns")
+
+        # Clean CSV column names
+        df.columns = [clean_column_name(c) for c in df.columns]
+
+        if selected_cols is not None:
+            sel_cols = [clean_column_name(c) for c in selected_cols]
+            existing_cols = df.columns.intersection(sel_cols)
+            missing_cols = set(sel_cols) - set(existing_cols)
+
+            df = df.loc[:, existing_cols]
+
+            print(f"📊 Selected {len(existing_cols)} matching columns.")
+            if missing_cols:
+                print(f"⚠️ {len(missing_cols)} columns missing:")
+                for col in sorted(missing_cols):
+                    print(f"   - {col}")
+                
+                # Optionally, show which requested columns actually exist
+                print(f"✅ {len(existing_cols)} columns found:")
+                for col in sorted(existing_cols):
+                    print(f"   - {col}")
+
+        return df
+
+    except FileNotFoundError:
+        print(f"❌ File not found at {path}")
+        return None
+    
 def uppercase_all_object_columns(df, print_unique=False):
     """
     Converts all object/string columns in a DataFrame to uppercase.
@@ -181,61 +256,7 @@ def impute_categorical_columns(df, stratify_cols=None, print_info=False, strateg
     return df
 
 
-def clean_column_name(col):
-    """
-    Robust normalization of column names:
-    - lowercase
-    - strip whitespace and non-breaking spaces
-    - replace spaces, hyphens, slashes with underscores
-    - replace % with 'pct'
-    - remove parentheses and other punctuation
-    - collapse multiple underscores
-    """
-    col = col.lower()
-    col = col.replace('\xa0', '_')  # non-breaking space
-    col = col.strip()
-    col = col.replace(' ', '_').replace('-', '_').replace('/', '_').replace('%', 'pct')
-    col = re.sub(r'[()°]', '', col)  # remove parentheses and degree symbol
-    col = re.sub(r'[^a-z0-9_]', '', col)  # remove any other non-alphanumeric
-    col = re.sub(r'__+', '_', col)  # collapse multiple underscores
-    return col
 
-
-def load_data(path, selected_cols=None):
-    """
-    Load raw subject data into a pandas DataFrame, optionally selecting columns
-    after normalizing column names for matching. Prints detailed mismatch info.
-    """
-    try:
-        df = pd.read_csv(path)
-        print(f"✅ Loaded data: {df.shape[0]} rows, {df.shape[1]} columns")
-
-        # Clean CSV column names
-        df.columns = [clean_column_name(c) for c in df.columns]
-
-        if selected_cols is not None:
-            sel_cols = [clean_column_name(c) for c in selected_cols]
-            existing_cols = df.columns.intersection(sel_cols)
-            missing_cols = set(sel_cols) - set(existing_cols)
-
-            df = df.loc[:, existing_cols]
-
-            print(f"📊 Selected {len(existing_cols)} matching columns.")
-            if missing_cols:
-                print(f"⚠️ {len(missing_cols)} columns missing:")
-                for col in sorted(missing_cols):
-                    print(f"   - {col}")
-                
-                # Optionally, show which requested columns actually exist
-                print(f"✅ {len(existing_cols)} columns found:")
-                for col in sorted(existing_cols):
-                    print(f"   - {col}")
-
-        return df
-
-    except FileNotFoundError:
-        print(f"❌ File not found at {path}")
-        return None
 
 
 
@@ -247,101 +268,156 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DATA_PATH = PROJECT_ROOT / "data" / "raw" / "subjects.csv"
 OUTPUT_PATH = PROJECT_ROOT / "data" / "processed" / "subjects_processed.csv"
 
-cols_to_select = [
-    "dm_non-dm_stroke",
-    "stroke_patient_medical_history",
-    "baseline_mean_hr_bp_baseline",
-    "dbp_baseline",
-    "mbp",
-    "sbp",
-    "rr_interval",
-    "hr",
-    "sbp_baseline",
-    "hr_baseline",
-    "baseline_mean_sbp_bp_baseline",
-    "baseline_mean_dbp_bp_baseline",
-    "baseline_mean_mbp_bp_baseline",
-    "hyper_mn_hr_supine_tilt",
-    "hypo_mn_hr_supine_tilt",
-    "hr_supine_tilt",
-    "sbp_supine_tilt",
-    "dbp_supine_tilt",
-    "mbp_supine_tilt",
-    "hr_stand_tilt",
-    "sbp_stand_tilt",
-    "dbp_stand_tilt",
-    "mbp_stand_tilt",
-    "hrv_sdnn",
-    "hrv_rmssd",
-    "hrv_pnn50",
-    "hrv_lf",
-    "hrv_hf",
-    "hrv_lf_hf",
-    "rr_resp_rate",
-    "o2",
-    "co2",
-    "o2_base_tilt",
-    "o2_base_tilt_pct",
-    "r2_o2_base_tilt_pct",
-    "p_o2_base_tilt_pct",
-    "co2_base_tilt",
-    "co2_base_tilt_pct",
-    "r2_co2_base_tilt_pct",
-    "p_co2_base_tilt_pct",
-    "rco2l_base_tilt",
-    "rco2l_base_tilt_pct",
-    "r2_rco2l_base_tilt_pct",
-    "p_rco2l_base_tilt_pct",
-    "o2_hyper_pct",
-    "co2_hyper_pct",
-    "o2_hypo_pct",
-    "co2_hypo_pct",
-    "sbp_supine_rebreathing",
-    "dbp_supine_rebreathing",
-    "mbp_supine_rebreathing",
-    "hypo_mn_hr_supine_rebreathing",
-    "hr_supine_rebreathing",
-    "sbp_stand_rebreathing",
-    "dbp_stand_rebreathing",
-    "mbp_stand_rebreathing",
-    "hr_stand_rebreathing",
-    "sbp_base_tilt",
-    "sbp_base_tilt_pct",
-    "r2_sbp_base_tilt_pct",
-    "p_sbp_base_tilt_pct",
-    "dbp_base_tilt",
-    "dbp_base_tilt_pct",
-    "r2_dbp_base_tilt_pct",
-    "p_dbp_base_tilt_pct",
-    "mbp_base_tilt",
-    "mbp_base_tilt_pct",
-    "r2_mbp_base_tilt_pct",
-    "p_mbp_base_tilt_pct",
-    "sbp_hyper_pct",
-    "mbp_hyper_pct",
-    "mbp_hypo_pct",
-    "diast_mcal_tilt",
-    "mean_mcal_tilt",
-    "gait_cadence",
-    "gait_velocity",
-    "gait_stride_time",
-    "gait_stance_time",
-    "htn_patient_medical_history",
-    # co-variates
-    "group",
-    "ethnicity",
+# Demographics & Clinical
+demographics_clinical = [
+    "subject_number",
+    "Age",
     "gender",
+    "BMI",
+    "Group",
+    "ethnicity",
     "race",
-    "age",
-    "bmi",
-    # id
-    "subject_number"
+    "DM PATIENT MEDICAL HISTORY",
+    "HTN YRS PATIENT MEDICAL HISTORY"
 ]
 
+# Baseline Cardiovascular
+baseline_cardiovascular = [
+    "(Baseline Mean) HR BP BASELINE",
+    "SBP BASELINE",
+    "DBP BASELINE",
+    "MBP",
+    "MEAN MCAR BASELINE",
+    "MEAN MCAL BASELINE",
+    "CO2 BASELINE",
+    "SYST MCAR BASELINE",
+    "DIAST MCAR BASELINE"
+]
+
+# Tilt (Autonomic / Orthostatic)
+tilt_autonomic = [
+    "(Tilt mn) HR TILT",
+    "SBP TILT",
+    "DBP TILT",
+    "MBP TILT",
+    "MEAN MCAR TILT",
+    "MEAN MCAL TILT",
+    "CO2 TILT",
+    "DELTA MEAN BP TILT-BASELINE"
+]
+
+# Hyperventilation
+hyperventilation = [
+    "(Hyper mn) HR HYPERVENTILATION",
+    "SBP HV",
+    "DBP HV",
+    "MBP HV",
+    "MEAN MCAR HV",
+    "MEAN MCAL HV",
+    "CO2 HV",
+    "CO2_reactivity_Baseline-2-Hyper_MCAR",
+    "CO2_reactivity_Baseline-2-Hyper_MCAL"
+]
+
+# Rebreathing
+rebreathing = [
+    "(Hypo mn) HR SUPINE REBREATHING",
+    "SBP SUPINE REBREATHING",
+    "DBP SUPINE REBREATHING",
+    "MBP SUPINE REBREATHING",
+    "MEAN MCAR SUPINE REBREATHING",
+    "MEAN MCAL SUPINE REBREATHING",
+    "CO2 SUPINE REBREATHING",
+    "CO2_reactivity_Baseline-2-Hypo_MCAR",
+    "CO2_reactivity_Baseline-2-Hypo_MCAL"
+]
+
+# Sitting & Standing Responses
+sitting_standing = [
+    "(SitEO mn) SitEO HR mean",
+    "Mean BP SitEO",
+    "Mean MCAR SitEO",
+    "Mean MCAL SitEO",
+    "(StandEO mn) Mean HR StandEO",
+    "Mean BP StandEO",
+    "Mean MCAR StandEO",
+    "Mean MCAL StandEO"
+]
+
+# Cerebrovascular Age-Adjusted Indices
+cerebrovascular_indices = [
+    "Age_adjusted_Mean_MCAR_BASELINE",
+    "Age_adjusted_Mean_MCAL_BASELINE",
+    "Age_Residual MEAN MCAR BASELINE",
+    "Age_Residual MEAN MCAL BASELINE",
+    "CO2_reactivity_MCAR"
+]
+
+# 24-Hour Blood Pressure Variability
+bp_variability_24hr = [
+    "24Hour-Daytime-SBP",
+    "24Hour-Nighttime-SBP",
+    "24Hour-Daytime-DBP",
+    "24Hour-Nighttime-DBP",
+    "24Hour-MBPDIP%",
+    "24Hour-HRDIP%",
+    "24Hour-SBPDIPPER",
+    "24Hour-DBPDIPPER",
+    "24Hour-MBPDIPPER"
+]
+
+# Heart Rate Variability Indices
+hr_variability = [
+    "HRV_ SDNN",
+    "HRV_ RMSSD",
+    "HRV_PNN50",
+    "HRV_ LF",
+    "HRV_ HF",
+    "HRV_ LF/HF",
+    "HRV_ AVNN",
+    "HRV_ SDANN"
+]
+
+# Gas Exchange & Vasoreactivity
+gas_exchange_vasoreactivity = [
+    "O2_base",
+    "CO2_base",
+    "O2_hyper_%",
+    "CO2_hyper_%",
+    "O2_hypo_%",
+    "CO2_hypo_%",
+    "O2_tilt_%",
+    "CO2_tilt_%"
+]
+
+# Gait & Movement
+gait_movement = [
+    "GAIT - Walk 1 distance (m)",
+    "GAIT - Walk 1 speed (m/s)",
+    "GAIT - Walk 2 distance (m)",
+    "GAIT - Walk 2 speed (m/s)"
+]
+
+all_columns = (
+    demographics_clinical +
+    baseline_cardiovascular +
+    tilt_autonomic +
+    hyperventilation +
+    rebreathing +
+    sitting_standing +
+    cerebrovascular_indices +
+    bp_variability_24hr +
+    hr_variability +
+    gas_exchange_vasoreactivity +
+    gait_movement
+)
+
+# Apply cleaning function to all column names
+cleaned_columns = [clean_column_name(col) for col in all_columns]
 
 
 # Load data
-df = load_data(path=DATA_PATH, selected_cols= cols_to_select)
+df = load_data(path=DATA_PATH, selected_cols= cleaned_columns)
 
 # Step 1: Convert all object/string columns to uppercase
 df_case_fixed, _ = uppercase_all_object_columns(df)
