@@ -1,0 +1,22 @@
+feature,coef,odds_ratio
+ethnicity_NON H/L,0.486549,1.626693
+sbp_baseline,0.379728,1.461887
+co2_tilt_pct,0.375589,1.455849
+dm_patient_medical_history_YES,0.314766,1.369939
+sbp_tilt,0.109229,1.115417
+baseline_mean_hr_bp_baseline,0.097292,1.102182
+gender_M,0.048488,1.049682
+co2_tilt,0.032385,1.032915
+co2_hyper_pct,0.030344,1.030809
+o2_base,-0.006712,0.993311
+siteo_mn_siteo_hr_mean,-0.021844,0.978393
+dbp_supine_rebreathing,-0.034204,0.966375
+co2_reactivity_mcar,-0.035789,0.964844
+race_ASIAN,-0.10839,0.897277
+ethnicity_UNKNOWN,-0.161567,0.85081
+hrv_pnn50,-0.212138,0.808853
+mean_mcal_supine_rebreathing,-0.229478,0.794948
+co2_supine_rebreathing,-0.269372,0.763859
+gait_walk_1_distance_m,-0.330022,0.718908
+gait_walk_2_distance_m,-0.670001,0.511708
+ethnicity_NON-H/L,-0.73369,0.480134
