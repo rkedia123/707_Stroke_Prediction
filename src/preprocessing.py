@@ -267,6 +267,7 @@ def impute_categorical_columns(df, stratify_cols=None, print_info=False, strateg
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DATA_PATH = PROJECT_ROOT / "data" / "raw" / "subjects.csv"
 OUTPUT_PATH = PROJECT_ROOT / "data" / "processed" / "subjects_processed.csv"
+SUBSET_OUTPUT_PATH = PROJECT_ROOT / "data" / "processed" / "subset_subjects_processed.csv"
 
 # Demographics & Clinical
 demographics_clinical = [
@@ -438,3 +439,34 @@ OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
 df_imputed_cat.to_csv(OUTPUT_PATH, index=False)
 
 print(f"✅ Processed data saved to: {OUTPUT_PATH}")
+
+# Step 5: Save subset data based off corr
+SUBSET_OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
+
+# cols to use
+cols=[
+    "gait_walk_1_distance_m",  # gait
+    "o2_base", # gas exchange
+    "hrv_sdnn", # heart rate
+    "24hour_mbpdippct", #blood pressure
+    "age_adjusted_mean_mcar_baseline", #cerebrovascular 
+    "mean_bp_siteo", # sitting/standing
+    "mean_mcar_supine_rebreathing", # rebreathing
+    "sbp_hv", # hyperventilation
+    "mean_mcar_tilt", # tilt
+    "baseline_mean_hr_bp_baseline", #baseline cardiovascular
+    "age", # demographics
+    "bmi", # demographics
+    "htn_yrs_patient_medical_history", # demographics
+    "group", # demographics
+    "gender", # demographics
+    "ethnicity", # demographics
+    "race", # demographics
+    "dm_patient_medical_history", # demographics
+    "24hour_sbpdipper" # demographics
+
+]
+df_imputed_subset= df_imputed_cat[cols]
+df_imputed_subset.to_csv(SUBSET_OUTPUT_PATH, index=False)
+
+print(f"✅ Processed subsetted data saved to: {SUBSET_OUTPUT_PATH}")

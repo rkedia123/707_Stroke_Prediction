@@ -63,17 +63,28 @@ def create_object_data_dict(df):
 # Testing functions and creating updated .csv file
 # Define project root and data paths
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-DATA_PATH = PROJECT_ROOT / "data" / "processed" / "subjects_processed.csv"
+MAIN_DATA_PATH = PROJECT_ROOT / "data" / "processed" / "subjects_processed.csv"
+SUBSET_DATA_PATH = PROJECT_ROOT / "data" / "processed" / "subset_subjects_processed.csv"
 
 
+# full
+df_full = pd.read_csv(MAIN_DATA_PATH)
+full_numeric_dict = create_numeric_data_dict(df_full)
+full_object_dict = create_object_data_dict(df_full)
+full_numeric_dict.to_csv(PROJECT_ROOT / "data" / "processed" / "tables"/ "full_numeric_data_dictionary.csv")
+full_object_dict.to_csv(PROJECT_ROOT / "data" / "processed" /  "tables" /"full_object_data_dictionary.csv")
 
-df = pd.read_csv(DATA_PATH)
 
-numeric_dict = create_numeric_data_dict(df)
-object_dict = create_object_data_dict(df)
-
-# Save to CSV
-numeric_dict.to_csv(PROJECT_ROOT / "data" / "processed" / "numeric_data_dictionary.csv")
-object_dict.to_csv(PROJECT_ROOT / "data" / "processed" / "object_data_dictionary.csv")
 
 print("Numeric and object data dictionaries created and saved.")
+
+
+# subset
+df_subset = pd.read_csv(SUBSET_DATA_PATH)
+subset_numeric_dict = create_numeric_data_dict(df_subset)
+subset_object_dict = create_object_data_dict(df_subset)
+subset_numeric_dict.to_csv(PROJECT_ROOT / "data" / "processed" / "tables"/ "subset_numeric_data_dictionary.csv")
+subset_object_dict.to_csv(PROJECT_ROOT / "data" / "processed" /  "tables" /"subset_object_data_dictionary.csv")
+
+
+
