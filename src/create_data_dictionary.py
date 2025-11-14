@@ -73,7 +73,7 @@ numeric_dict = create_numeric_data_dict(df)
 object_dict = create_object_data_dict(df)
 
 # Save to CSV
-numeric_dict.to_csv(PROJECT_ROOT / "data" / "processed" / "numeric_data_dictionary.csv")
-object_dict.to_csv(PROJECT_ROOT / "data" / "processed" / "object_data_dictionary.csv")
+numeric_dict.to_csv(PROJECT_ROOT / "data" / "processed" / "tables"/ "numeric_data_dictionary.csv")
+object_dict.to_csv(PROJECT_ROOT / "data" / "processed" /  "tables" /"object_data_dictionary.csv")
 
 print("Numeric and object data dictionaries created and saved.")

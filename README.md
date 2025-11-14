@@ -1,8 +1,7 @@
 # 707_Stroke_Prediction
 Determining Key Biomarkers of Stroke in ICU Patients
 ---
-### 1. Data Processing Steps
-
+### 1. Data Processing Steps  in src/preprocessing.py
 - **Load Data**
   * Load in raw data and select cols of interest using `load_data`
 
@@ -33,5 +32,15 @@ Determining Key Biomarkers of Stroke in ICU Patients
     - Step 3: Replace each missing value with a randomly selected donor 
     - Potential list of stratifiers (`group`, `gender`, `ethnicity`, `race`). It's best to only use a few stratifiers otherwise, we will have to use global column set too much.
 
-- **Creating Data Dictionary**
+### 2. **Create Data Dictionary** in src/create_data_dictionary.py
   * Create a data dictionary of all chosen columns of `subjects.csv`
+  * Object data dictionary using `create_object_data_dict`
+  * Numeric column data dictionary created using `create_numeric_data_dict`
+
+### 3. **Conduct Exploratory Analysis** in src/exploratory_analysis.py
+- **Data Summary Tables**
+  * Object Variable cols table using `summarize_categorical`
+  * Numeric Variable cols table using `summarize_numeric`
+- **Plots**
+  * Heatmaps to check correlation between numeric vars using `create_heatmaps`
+  * Boxplots of nuemric columns using `plot_numeric_boxplots`
