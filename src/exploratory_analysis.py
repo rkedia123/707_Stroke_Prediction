@@ -255,6 +255,52 @@ def plot_numeric_boxplots(df, groups, figsize=(12,6), output_dir=None, standardi
 
         plt.show()
 
+# standard box-plot
+def plot_standardized_boxplot(df, figsize=(12,6), output_path=None):
+    """
+    Standardize all numeric columns in the DataFrame and plot a single boxplot.
+    Optionally save the figure to a file.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Input DataFrame.
+    figsize : tuple, default=(12,6)
+        Figure size for the plot.
+    output_path : str or Path, optional
+        Path to save the figure. If None, figure is not saved.
+
+    Returns
+    -------
+    None
+    """
+    # Select numeric columns
+    numeric_cols = df.select_dtypes(include='number').columns.tolist()
+    if not numeric_cols:
+        print("No numeric columns found in the DataFrame.")
+        return
+
+    # Standardize numeric columns
+    scaler = StandardScaler()
+    df_scaled = pd.DataFrame(scaler.fit_transform(df[numeric_cols]), columns=numeric_cols)
+
+    # Melt for plotting
+    df_melted = df_scaled.melt(var_name="Variable", value_name="Value")
+
+    # Plot boxplot
+    plt.figure(figsize=figsize)
+    sns.boxplot(x="Variable", y="Value", data=df_melted, fliersize=1.5)
+    plt.xticks(rotation=45, ha="right")
+    plt.title("Standardized Boxplots of All Numeric Variables")
+    plt.tight_layout()
+
+    # Save figure if output_path is provided
+    if output_path:
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        plt.savefig(output_path, dpi=300)
+
+    plt.show()
+
 ##########################################################
 # Testing functions and creating updated .csv file
 # Define project root and data paths
@@ -467,3 +513,7 @@ high_corr_df = plot_numeric_corr_heatmap(
 # box plots
 output_dir= PROJECT_ROOT/ "data"/"processed" / "plots"
 plot_numeric_boxplots(df_full, output_dir= output_dir, groups= groups_cleaned)
+
+# subset of standardized num cols
+box_plot_path=  PROJECT_ROOT/ "data"/"processed" / "plots" / "subset_standard_box.png"
+plot_standardized_boxplot(df_subset, output_path=box_plot_path)
