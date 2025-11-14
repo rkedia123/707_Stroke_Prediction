@@ -63,7 +63,7 @@ def create_object_data_dict(df):
 # Testing functions and creating updated .csv file
 # Define project root and data paths
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-DATA_PATH = PROJECT_ROOT / "data" / "processed" / "subjects_processed.csv"
+DATA_PATH = PROJECT_ROOT / "data" / "processed" / "subset_subjects_processed.csv"
 
 
 

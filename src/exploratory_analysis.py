@@ -116,41 +116,47 @@ def summarize_numeric(df, groups_dict, round_digits=1):
     return pd.DataFrame(summary_rows)
 
 # create corr heat map
-def plot_numeric_corr_heatmap(df, threshold=0.8, figsize=(12,10), save_heatmap_path=None, save_corr_df_path=None):
+def plot_numeric_corr_heatmap(
+    df, 
+    threshold=0.8, 
+    figsize=(12,10), 
+    save_heatmap_path=None, 
+    save_corr_df_path=None,
+    cols=None
+):
     """
-    Plot a heatmap of correlations between numeric columns and flag highly correlated pairs.
-    Optionally save the heatmap figure and the high correlation DataFrame as CSV.
+    Plot a heatmap of correlations between numeric columns (or selected columns)
+    and flag highly correlated pairs.
 
     Parameters
     ----------
     df : pd.DataFrame
-        Input DataFrame.
-    threshold : float, default=0.8
-        Absolute correlation value to flag as "highly correlated".
-    figsize : tuple, default=(12,10)
-        Figure size for the heatmap.
-    save_heatmap_path : str or Path, optional
-        If provided, saves the heatmap figure to this path.
-    save_corr_df_path : str or Path, optional
-        If provided, saves the high correlation DataFrame as a CSV.
-
-    Returns
-    -------
-    high_corr_df : pd.DataFrame
-        DataFrame of highly correlated variable pairs.
+    threshold : float
+    figsize : tuple
+    save_heatmap_path : str or Path
+    save_corr_df_path : str or Path
+    cols : list, optional
+        Columns to include in the correlation heatmap. 
+        If None, all numeric columns are used.
     """
 
+    # --- Select columns ---
+    if cols is not None:
+        # Only keep numeric among requested cols
+        numeric_df = df[cols].select_dtypes(include=[np.number])
+    else:
+        numeric_df = df.select_dtypes(include=[np.number])
 
+    if numeric_df.shape[1] == 0:
+        raise ValueError("No numeric columns available for correlation.")
 
-    # Select numeric columns only
-    numeric_df = df.select_dtypes(include=[np.number])
-
-    # Compute correlation matrix
+    # --- Compute correlation ---
     corr_matrix = numeric_df.corr()
 
-    # Plot heatmap
+    # --- Plot heatmap ---
     plt.figure(figsize=figsize)
-    mask = np.triu(np.ones_like(corr_matrix, dtype=bool))  # mask upper triangle
+    mask = np.triu(np.ones_like(corr_matrix, dtype=bool))
+
     sns.heatmap(
         corr_matrix,
         mask=mask,
@@ -161,15 +167,18 @@ def plot_numeric_corr_heatmap(df, threshold=0.8, figsize=(12,10), save_heatmap_p
         square=True,
         cbar_kws={"shrink": 0.8}
     )
-    plt.title("Correlation Heatmap of Numeric Variables")
+    plt.title("Correlation Heatmap")
     plt.tight_layout()
+
     if save_heatmap_path:
         plt.savefig(save_heatmap_path, dpi=300)
+
     plt.show()
 
-    # Find highly correlated pairs
+    # --- Find highly correlated pairs ---
     high_corr = []
     cols = corr_matrix.columns
+
     for i in range(len(cols)):
         for j in range(i+1, len(cols)):
             corr_val = corr_matrix.iloc[i, j]
@@ -180,9 +189,13 @@ def plot_numeric_corr_heatmap(df, threshold=0.8, figsize=(12,10), save_heatmap_p
                     "Correlation": corr_val
                 })
 
-    high_corr_df = pd.DataFrame(high_corr).sort_values(by="Correlation", key=abs, ascending=False)
+    high_corr_df = pd.DataFrame(high_corr).sort_values(
+        by="Correlation", 
+        key=lambda x: abs(x),
+        ascending=False
+    )
 
-    # Save high correlation DataFrame if path provided
+    # save
     if save_corr_df_path:
         high_corr_df.to_csv(save_corr_df_path, index=False)
 
@@ -246,7 +259,7 @@ def plot_numeric_boxplots(df, groups, figsize=(12,6), output_dir=None, standardi
 # Testing functions and creating updated .csv file
 # Define project root and data paths
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-DATA_PATH = PROJECT_ROOT / "data" / "processed" / "subjects_processed.csv"
+DATA_PATH = PROJECT_ROOT / "data" / "processed" / "subset_subjects_processed.csv"
 
 # load data
 df = pd.read_csv(DATA_PATH)
@@ -423,13 +436,33 @@ print(f"Numeric summary saved to: {num_output_path}")
 # Create Plots
 # Heat Map Corr Plot + csv
 
-plot_path= PROJECT_ROOT/ "data"/"processed" / "plots" / "corr_heatmap.png"
-corr_table_path= PROJECT_ROOT/ "data"/"processed" / "tables" / "high_corr_table.csv"
+plot_path= PROJECT_ROOT/ "data"/"processed" / "plots" / "corr_heatmap_subset.png"
+corr_table_path= PROJECT_ROOT/ "data"/"processed" / "tables" / "high_corr_table_subset.csv"
+
+# cols of interest
+cols=[
+    "gait_walk_1_distance_m",  # gait
+    "o2_base", # gas exchange
+    "hrv_sdnn", # heart rate
+    "24hour_mbpdippct", #blood pressure
+    "age_adjusted_mean_mcar_baseline", #cerebrovascular 
+    "mean_bp_siteo", # sitting/standing
+    "mean_mcar_supine_rebreathing", # rebreathing
+    "sbp_hv", # hyperventilation
+    "mean_mcar_tilt", # tilt
+    "baseline_mean_hr_bp_baseline", #baseline cardiovascular
+    "age", # demographics
+    "bmi", # demographics
+    "htn_yrs_patient_medical_history", # demographics
+
+]
+
 high_corr_df = plot_numeric_corr_heatmap(
     df, 
     threshold=0.5, 
     save_heatmap_path=plot_path,
-    save_corr_df_path= corr_table_path
+    save_corr_df_path= corr_table_path,
+    cols=cols
 )
 
 # box plots

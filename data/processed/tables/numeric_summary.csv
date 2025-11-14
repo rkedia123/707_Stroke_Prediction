@@ -6,95 +6,31 @@ htn_yrs_patient_medical_history,172,28.2 (153.3),-60.6,2001.0
 ,,,,
 == Baseline Cardiovascular ==,,,,
 baseline_mean_hr_bp_baseline,172,67.2 (7.3),44.4,95.8
-sbp_baseline,172,126.4 (11.8),92.7,166.9
-dbp_baseline,172,61.1 (7.0),39.4,87.2
-mbp,172,84.3 (7.2),63.8,110.9
-mean_mcar_baseline,172,43.4 (12.9),10.0,88.1
-mean_mcal_baseline,172,42.9 (13.6),12.2,141.9
-co2_baseline,172,36.0 (2.8),17.2,45.7
-syst_mcar_baseline,172,60.7 (17.4),14.3,132.3
-diast_mcar_baseline,172,31.5 (10.5),2.1,79.8
 ,,,,
 == Tilt (Autonomic / Orthostatic) ==,,,,
-tilt_mn_hr_tilt,172,73.2 (8.9),49.5,110.4
-sbp_tilt,172,128.9 (13.7),80.5,176.9
-dbp_tilt,172,66.4 (7.9),40.3,101.5
-mbp_tilt,172,88.4 (8.5),66.2,123.9
 mean_mcar_tilt,172,40.0 (11.9),2.9,84.7
-mean_mcal_tilt,172,39.9 (12.1),14.8,134.7
-co2_tilt,172,33.9 (3.0),25.3,41.9
-delta_mean_bp_tilt_baseline,172,4.2 (5.6),-16.5,29.7
 ,,,,
 == Hyperventilation ==,,,,
-hyper_mn_hr_hyperventilation,172,71.6 (11.3),46.6,182.8
 sbp_hv,172,126.6 (13.1),88.8,185.2
-dbp_hv,172,60.8 (7.1),39.7,88.4
-mbp_hv,172,84.1 (7.8),61.1,115.2
-mean_mcar_hv,172,36.4 (10.1),0.3,77.2
-mean_mcal_hv,172,35.9 (10.0),8.0,96.4
-co2_hv,172,24.7 (2.2),15.7,31.8
-co2_reactivity_baseline_2_hyper_mcar,172,0.6 (0.7),-3.9,4.1
-co2_reactivity_baseline_2_hyper_mcal,172,0.6 (0.8),-3.3,4.3
 ,,,,
 == Rebreathing ==,,,,
-hypo_mn_hr_supine_rebreathing,172,70.8 (7.3),48.1,100.5
-sbp_supine_rebreathing,172,143.3 (17.6),99.1,219.6
-dbp_supine_rebreathing,172,68.5 (8.4),47.7,98.2
-mbp_supine_rebreathing,172,95.9 (10.8),67.7,141.5
 mean_mcar_supine_rebreathing,172,59.8 (19.7),2.6,139.3
-mean_mcal_supine_rebreathing,172,60.5 (20.2),11.5,159.7
-co2_supine_rebreathing,172,44.1 (5.4),27.9,61.2
-co2_reactivity_baseline_2_hypo_mcar,172,2.3 (2.7),-6.2,29.9
-co2_reactivity_baseline_2_hypo_mcal,172,2.0 (5.4),-19.7,58.0
 ,,,,
 == Sitting & Standing Responses ==,,,,
-siteo_mn_siteo_hr_mean,172,75.8 (13.5),32.0,197.3
 mean_bp_siteo,172,89.6 (7.7),66.4,115.7
-mean_mcar_siteo,172,38.9 (10.1),-0.3,82.7
-mean_mcal_siteo,172,38.9 (10.4),12.3,90.7
-standeo_mn_mean_hr_standeo,172,82.6 (16.2),35.1,231.2
-mean_bp_standeo,172,90.6 (8.7),65.2,115.9
-mean_mcar_standeo,172,37.1 (9.9),-0.2,81.1
-mean_mcal_standeo,172,36.9 (10.7),4.7,89.7
 ,,,,
 == Cerebrovascular Age-Adjusted Indices ==,,,,
 age_adjusted_mean_mcar_baseline,172,45.6 (13.2),1.3,91.1
-age_adjusted_mean_mcal_baseline,172,44.8 (13.9),-17.7,124.6
-age_residual_mean_mcar_baseline,172,-8.1 (13.2),-51.6,37.3
-age_residual_mean_mcal_baseline,172,-8.6 (13.9),-70.4,70.9
-co2_reactivity_mcar,172,1.0 (0.6),-1.9,3.9
 ,,,,
 == 24-Hour Blood Pressure Variability ==,,,,
-24hour_daytime_sbp,172,131.9 (9.0),111.2,169.1
-24hour_nighttime_sbp,172,127.7 (10.6),99.6,176.0
-24hour_daytime_dbp,172,68.1 (6.3),52.7,85.1
-24hour_nighttime_dbp,172,62.6 (6.2),43.0,82.0
 24hour_mbpdippct,172,6.6 (4.4),-11.2,19.9
-24hour_hrdippct,172,8.3 (4.1),-18.2,23.4
 ,,,,
 == Heart Rate Variability Indices ==,,,,
 hrv_sdnn,172,0.1 (0.0),0.1,0.3
-hrv_rmssd,172,0.0 (0.0),0.0,0.2
-hrv_pnn50,172,0.1 (0.1),0.0,0.8
-hrv_lf,172,0.0 (0.0),-0.0,0.0
-hrv_hf,172,0.0 (0.0),-0.0,0.0
-hrv_lf_hf,172,2.4 (1.2),0.4,11.7
-hrv_avnn,172,0.9 (0.1),0.6,1.9
-hrv_sdann,172,0.1 (0.0),0.0,0.3
 ,,,,
 == Gas Exchange & Vasoreactivity ==,,,,
 o2_base,172,19.0 (0.1),18.4,19.1
-co2_base,172,35.9 (2.8),17.2,45.7
-o2_hyper_pct,172,99.9 (0.5),98.6,104.0
-co2_hyper_pct,172,70.3 (7.4),37.5,99.3
-o2_hypo_pct,172,91.4 (5.0),72.4,101.6
-co2_hypo_pct,172,115.7 (13.7),73.7,174.0
-o2_tilt_pct,172,99.9 (0.7),94.6,103.6
-co2_tilt_pct,172,93.8 (8.6),70.1,168.9
 ,,,,
 == Gait & Movement ==,,,,
 gait_walk_1_distance_m,172,703.1 (140.5),75.7,992.6
-gait_walk_1_speed_m_s,172,1.0 (0.2),0.2,1.4
-gait_walk_2_distance_m,172,711.3 (141.5),104.8,1032.2
-gait_walk_2_speed_m_s,172,1.0 (0.2),0.2,1.4
 ,,,,

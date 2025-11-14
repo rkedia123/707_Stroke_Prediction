@@ -1,0 +1,4 @@
+Variable 1,Variable 2,Correlation
+age_adjusted_mean_mcar_baseline,mean_mcar_tilt,0.8536695972083179
+age_adjusted_mean_mcar_baseline,mean_mcar_supine_rebreathing,0.8169779412498372
+mean_mcar_supine_rebreathing,mean_mcar_tilt,0.7616740904376026
