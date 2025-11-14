@@ -259,14 +259,16 @@ def plot_numeric_boxplots(df, groups, figsize=(12,6), output_dir=None, standardi
 # Testing functions and creating updated .csv file
 # Define project root and data paths
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-DATA_PATH = PROJECT_ROOT / "data" / "processed" / "subset_subjects_processed.csv"
+MAIN_DATA_PATH = PROJECT_ROOT / "data" / "processed" / "subjects_processed.csv"
+SUBSET_DATA_PATH = PROJECT_ROOT / "data" / "processed" / "subset_subjects_processed.csv"
 
 # load data
-df = pd.read_csv(DATA_PATH)
+df_full = pd.read_csv(MAIN_DATA_PATH)
+df_subset = pd.read_csv(SUBSET_DATA_PATH)
 
 # Generate summaries
-cat_summary = summarize_categorical(df, exclude= "subject_number")
-
+full_cat_summary = summarize_categorical(df_full, exclude= "subject_number")
+subset_cat_summary = summarize_categorical(df_subset, exclude= "subject_number")
 # group by 
 
 # Demographics & Clinical
@@ -419,52 +421,49 @@ groups_cleaned = {
     group_name: [clean_column_name(col) for col in cols]
     for group_name, cols in groups.items()
 }
-num_summary = summarize_numeric(df, groups_cleaned)
+full_num_summary = summarize_numeric(df_full, groups_cleaned)
+subset_num_summary = summarize_numeric(df_subset, groups_cleaned)
 
 # Save outputs
-cat_output_path = PROJECT_ROOT / "data" / "processed" / "tables"/ "categorical_summary.csv"
-num_output_path = PROJECT_ROOT / "data" / "processed" / "tables" / "numeric_summary.csv"
+full_cat_output_path = PROJECT_ROOT / "data" / "processed" / "tables"/ "full_categorical_summary.csv"
+full_num_output_path = PROJECT_ROOT / "data" / "processed" / "tables" / "full_numeric_summary.csv"
 
-cat_summary.to_csv(cat_output_path, index=False)
-num_summary.to_csv(num_output_path, index=False)
+subset_cat_output_path = PROJECT_ROOT / "data" / "processed" / "tables"/ "subset_categorical_summary.csv"
+subset_num_output_path = PROJECT_ROOT / "data" / "processed" / "tables" / "subset_numeric_summary.csv"
 
-print(f"Categorical summary saved to: {cat_output_path}")
-print(f"Numeric summary saved to: {num_output_path}")
+full_cat_summary.to_csv(full_cat_output_path, index=False)
+full_num_summary.to_csv(full_num_output_path, index=False)
+
+subset_cat_summary.to_csv(subset_cat_output_path, index=False)
+subset_num_summary.to_csv(subset_num_output_path, index=False)
+
+
 
 
 #### 
 # Create Plots
 # Heat Map Corr Plot + csv
+full_plot_path= PROJECT_ROOT/ "data"/"processed" / "plots" / "corr_heatmap_full.png"
+full_corr_table_path= PROJECT_ROOT/ "data"/"processed" / "tables" / "high_corr_table_full.csv"
+subset_plot_path= PROJECT_ROOT/ "data"/"processed" / "plots" / "corr_heatmap_subset.png"
+subset_corr_table_path= PROJECT_ROOT/ "data"/"processed" / "tables" / "high_corr_table_subset.csv"
 
-plot_path= PROJECT_ROOT/ "data"/"processed" / "plots" / "corr_heatmap_subset.png"
-corr_table_path= PROJECT_ROOT/ "data"/"processed" / "tables" / "high_corr_table_subset.csv"
 
-# cols of interest
-cols=[
-    "gait_walk_1_distance_m",  # gait
-    "o2_base", # gas exchange
-    "hrv_sdnn", # heart rate
-    "24hour_mbpdippct", #blood pressure
-    "age_adjusted_mean_mcar_baseline", #cerebrovascular 
-    "mean_bp_siteo", # sitting/standing
-    "mean_mcar_supine_rebreathing", # rebreathing
-    "sbp_hv", # hyperventilation
-    "mean_mcar_tilt", # tilt
-    "baseline_mean_hr_bp_baseline", #baseline cardiovascular
-    "age", # demographics
-    "bmi", # demographics
-    "htn_yrs_patient_medical_history", # demographics
-
-]
 
 high_corr_df = plot_numeric_corr_heatmap(
-    df, 
+    df_full, 
     threshold=0.5, 
-    save_heatmap_path=plot_path,
-    save_corr_df_path= corr_table_path,
-    cols=cols
+    save_heatmap_path=full_plot_path,
+    save_corr_df_path= full_corr_table_path,
+)
+
+high_corr_df = plot_numeric_corr_heatmap(
+    df_subset, 
+    threshold=0.5, 
+    save_heatmap_path=subset_plot_path,
+    save_corr_df_path= subset_corr_table_path,
 )
 
 # box plots
 output_dir= PROJECT_ROOT/ "data"/"processed" / "plots"
-plot_numeric_boxplots(df, output_dir= output_dir, groups= groups_cleaned)
+plot_numeric_boxplots(df_full, output_dir= output_dir, groups= groups_cleaned)

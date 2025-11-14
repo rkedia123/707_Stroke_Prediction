@@ -1,0 +1,10 @@
+,type,description,num_missing,num_unique,unique_values,example
+subject_number,object,,0,172,[],S0011
+group,object,,0,2,"['CONTROL', 'STROKE']",CONTROL
+gender,object,,0,2,"['F', 'M']",F
+ethnicity,object,,0,4,"['NON-H/L', 'NON H/L', 'UNKNOWN', 'H/L']",NON-H/L
+race,object,,0,6,"['WHITE', 'AFRICAN AMERICAN', 'ASIAN', 'UNKNOWN', 'AMERICAN INDIAN', 'AA']",WHITE
+dm_patient_medical_history,object,,0,2,"['NO', 'YES']",NO
+24hour_sbpdipper,object,,0,2,"['NO', 'YES']",NO
+24hour_dbpdipper,object,,0,2,"['NO', 'YES']",NO
+24hour_mbpdipper,object,,0,2,"['NO', 'YES']",NO
